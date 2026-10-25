@@ -1,4 +1,8 @@
+import numpy as np
 import pandas as pd
+
+from flowtool.fcs_io import inspect_fcs_file
+from flowtool.gating import assign_labels
 
 def score_crosstab(tab, min_events=10):
     """For each expert class (except the catch-all class 0), find the group of mine
@@ -28,3 +32,31 @@ def score_crosstab(tab, min_events=10):
             "note": "too few cells to score" if expert_total < min_events else "",
         })
     return pd.DataFrame(rows)
+
+KS_TO_FL = {"FITC.CD45.1": "FL1-H", "PE.Ly65Mac1": "FL2-H",
+            "PI.LiveDead": "FL3-H", "APC.CD45.2": "FL4-H"}
+
+def validate_against_labels(labels_csv, folder, subject_to_file, cutoffs):
+    """Attach the ks expert labels to each matching FCS file, label every event with
+    my gates, and score the agreement file by file."""
+    fl_cols = list(KS_TO_FL.values())
+    author_df = pd.read_csv(labels_csv).rename(columns=KS_TO_FL)
+
+    all_scores = []
+    for subject, file_name in subject_to_file.items():
+        _, df = inspect_fcs_file(f"{folder}/{file_name}")
+        subject_rows = author_df[author_df["subject"] == subject].reset_index(drop=True)
+
+        assert len(subject_rows) == len(df), f"{file_name}: different number of events"
+        assert np.allclose(subject_rows[fl_cols].to_numpy(), df[fl_cols].to_numpy()), \
+            f"{file_name}: values don't match"
+
+        df["expert_label"] = subject_rows["label"].to_numpy()
+        df["my_label"] = assign_labels(df, **cutoffs)
+
+        tab = pd.crosstab(df["my_label"], df["expert_label"])
+        scores = score_crosstab(tab)
+        scores.insert(0, "file", file_name)
+        all_scores.append(scores)
+
+    return pd.concat(all_scores, ignore_index=True)
