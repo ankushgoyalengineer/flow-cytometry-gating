@@ -62,13 +62,13 @@ Each file has six channels, all as heights: `FSC-H`, `SSC-H` and `FL1-H` to `FL4
 | FL3-H | PI | Live/dead | Dead cells (PI only enters damaged cells) |
 | FL4-H | APC | CD45.2 | Recipient-derived white blood cells |
 
-This mapping came from a secondary source, so I treated it as an assumption until Week 3, when I confirmed it value by value against the `ks` data.
+This mapping came from a secondary source, so I treated it as an assumption. During week 3, I will confirm it value by value against the `ks` data.
 
 All fluorescence values run from 0 to 1023, which means the instrument had already log-scaled them. Applying a further transformation would distort the data, so I gated the raw values.
 
 ### The biology
 
-This is a mouse transplant experiment. Donor and recipient strains carry different versions of the CD45 protein, CD45.1 and CD45.2, so the two can be told apart by staining. Weeks after the transplant, the fraction of donor cells in the recipient's bone marrow shows how well the transplanted stem cells engrafted. Donor myeloid cells are particularly informative: myeloid cells live only days, so donor myeloid cells found long after the transplant must have been freshly made by donor stem cells.
+This is a mouse transplant experiment. Donor and recipient strains carry different versions of the CD45 protein, CD45.1 and CD45.2 respectively, so the two can be told apart by staining. Weeks after the transplant, the fraction of donor cells in the recipient's bone marrow shows how well the transplanted stem cells engrafted. Donor myeloid cells are particularly informative: myeloid cells live only days, so donor myeloid cells found long after the transplant must have been freshly made by donor stem cells.
 
 ### Choosing the gates
 
