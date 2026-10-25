@@ -26,7 +26,7 @@ A plain scatter plot of FSC-A against SSC-A squashed most of the events into one
 
 Two changes made the data readable: limiting the plotted range to the 0.5th–99.5th percentiles, and using a logarithmic colour scale. That revealed a dense main population and a sparser group of larger, more granular events.
 
-![FSC-A vs SSC-A, density plot with log colour scale](flow-analysis-tool/images/attune_fsc_ssc_density.png)
+![FSC-A vs SSC-A, density plot with log colour scale](flow-cytomtery-gating/images/attune_fsc_ssc_density.png)
 
 ### A surprise in the fluorescence channels
 
@@ -36,7 +36,7 @@ Plotting BL1-A against VL1-A showed almost every event on a single tight diagona
 
 On a linear scale, the low-intensity clusters were crammed together near zero. Applying an arcsinh transformation (FlowKit's `AsinhTransform`, with the top of scale set to the file's measurement range) spread them out into about eight clearly separated clusters, roughly evenly spaced along the diagonal. Even spacing on a log-like scale means each cluster is brighter than the last by a similar multiple, which is how multi-peak beads are designed, and which strengthens the bead interpretation.
 
-![BL1-A vs VL1-A before and after arcsinh transformation](flow-analysis-tool/images/attune_bl1_vl1_raw_vs_asinh.png)
+![BL1-A vs VL1-A before and after arcsinh transformation](flow-cytomtery-gating/images/attune_bl1_vl1_raw_vs_asinh.png)
 
 Two things I learned the hard way:
 
