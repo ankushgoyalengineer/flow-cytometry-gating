@@ -1,0 +1,6 @@
+   flowkit
+   numpy
+   pandas
+   matplotlib
+   seaborn
+   pytest
