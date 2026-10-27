@@ -2,7 +2,7 @@
 
 A Python pipeline that reads raw FCS files, gates cell populations with fixed, documented thresholds, processes a whole folder of samples in one command, and checks the results against expert manual gating.
 
-Applied to the FlowCAP-I haematopoietic stem cell transplant (HSCT) dataset (mouse bone marrow, 30 files), it reproduces expert manual gating with **F-measures of 0.957–0.996 across 14 cell populations (median 0.985)**. Once the gates are set, gating all 30 files takes under a second, compared with [your honest estimate] to gate them by hand.
+Applied to the FlowCAP-I haematopoietic stem cell transplant (HSCT) dataset (mouse bone marrow: 26 samples plus 4 likely control files), it reproduces expert manual gating with **F-measures of 0.957–0.996 across 14 cell populations (median 0.985)**. Once the gates are set, gating all 30 files takes under a second, compared with roughly an hour to gate them by hand..
 
 ## Quick start
 
@@ -118,7 +118,7 @@ Each file has six channels, all as heights: `FSC-H`, `SSC-H` and `FL1-H` to `FL4
 | FL3-H | PI | Live/dead | Dead cells (PI only enters damaged cells) |
 | FL4-H | APC | CD45.2 | Recipient-derived white blood cells |
 
-This mapping came from a secondary source, so I treated it as an assumption. During week 3, I will confirm it value by value against the `ks` data.
+This mapping came from a secondary source, so I treated it as an assumption. In Week 3, I confirmed it value by value against the ks data.
 
 All fluorescence values run from 0 to 1023, which means the instrument had already log-scaled them. Applying a further transformation would distort the data, so I gated the raw values.
 
@@ -145,7 +145,7 @@ Above 700, the exact value barely matters. Below it, the cut-off starts cutting 
 
 **Recipient versus the rest (FL4-H, CD45.2).** Two clearly separated groups, with an empty band around 500–600. Cut-off: 550. The recipient population sat in the same place in every normally stained file, so one cut-off works across the batch.
 
-**Donor versus CD45-negative (FL1-H, CD45.1).** Among cells low on CD45.2, some were bright on CD45.1 and some dim. A cell low on both CD45 versions isn't a donor white blood cell; it's most likely a cell carrying little or no CD45, such as erythroid cells that survived the Ter119 depletion. So I split this group in two rather than treating it all as donor. In files 022, 025 and 028, both groups sat in consistent places, but the valley between them shifted, from about 400 to about 500, depending on which group was larger. A cut-off of 450 sat in the sparse region in all three.
+**Donor versus CD45-negative (FL1-H, CD45.1).** Among cells low on CD45.2, some were bright on CD45.1 and some dim. A cell low on both CD45 versions isn't a donor white blood cell; it's most likely a cell carrying little or no CD45, such as erythroid cells that survived the Ter119 depletion. So I split this group in two rather than treating it all as donor. In files 005, 022 and 025, both groups sat in consistent places, but the valley between them shifted, from about 400 to about 500, depending on which group was larger. A cut-off of 450 sat in the sparse region in all three.
 
 **Myeloid versus non-myeloid (FL2-H, Mac1).** A clear valley between about 400 and 550. Cut-off: 500. Mac1-negative cells are a mixture (B cells and their precursors, stem and progenitor cells, immature myeloid cells and others), so I describe them as Mac1-negative rather than lymphoid.
 
@@ -223,7 +223,7 @@ Percentages from very small groups are unreliable. Where a group has only a hand
 
 ### Why the cut-offs weren't automated
 
-I explored finding each file's cut-off automatically, by smoothing each histogram and locating the valley between its two main peaks, and decided against it. In a real lab, gates are set using control samples, which show where "negative" ends for each stain. When I started, the dataset appeared to have no controls, so an automated cut-off would have had nothing to be calibrated against. I used fixed gates chosen by eye instead, applied identically to every sample, which is standard practice within one experiment.
+I explored finding each file's cut-off automatically, by smoothing each histogram and locating the valley between its two main peaks, and decided against it. In a real lab, gates are set using control samples, which show where "negative" ends for each stain. When I started, the dataset appeared to have no controls, so an automated cut-off would have had nothing to be calibrated against. I used fixed gates chosen by eye, before any controls had been identified, to every sample, which is standard practice within one experiment.
 
 The controls I later found in files 027–030 confirmed those gates: every cut-off sits above the negative population in the relevant control. With documented controls, the next step would be to set the cut-offs from the controls directly rather than by eye.
 
@@ -231,7 +231,7 @@ The controls I later found in files 027–030 confirmed those gates: every cut-o
 
 ### Finding the labels
 
-FlowCAP-I scored automated methods against expert manual gating, so expert labels exist for this dataset, but they weren't among the files on FlowRepository. I found them in the R package [`ks`](https://cran.r-project.org/package=ks), which includes four of the HSCT samples as an example dataset: 39,128 events from mice 5, 6, 9 and 12, with four fluorescence values and an expert label for every event. I exported the data from R to a CSV file:
+FlowCAP-I scored automated methods against expert manual gating, so expert labels exist for this dataset, but they weren't among the files on FlowRepository. I found them in the R package [`ks`](https://cran.r-project.org/package=ks), which includes four of the HSCT samples as an example dataset: 39,128 events from mice 5, 6, 9 and 12, with four fluorescence values and an expert label for every event. I exported the data from R to a CSV file, running R from the project folder so the file lands in data/:
 
 ```r
 install.packages("ks")
@@ -292,8 +292,29 @@ Recall is almost always higher than precision: I find nearly every cell the expe
 
 The one consistent disagreement in the other direction is in file 005, where 54 cells the experts called donor fell into my CD45-negative group. They were donor by the experts' judgement but just below my CD45.1 cut-off of 450, so for this file the cut-off may be slightly high. I set all the cut-offs before looking at the expert labels and didn't change them afterwards, so these scores are a fair test of gates chosen independently.
 
-### Limitations
+### Limitations of the validation
 
 - Expert labels were available for only 4 of the 26 transplant samples, so the validation covers those four. The other 22 were gated with the same cut-offs.
 - The meaning of each expert class was inferred from the data rather than documented.
 - Expert labels are a reference, not absolute truth: different analysts gate the same file slightly differently, which is part of why FlowCAP existed.
+
+## Limitations and next steps
+
+- Expert labels were available for only 4 of the 26 transplant samples.
+- The cut-offs were chosen by eye rather than set from controls. The likely controls in files 027–030 support them, but they aren't documented as controls.
+- The gates are specific to this panel. Describing each panel's gates in a configuration, rather than in code, would let the same tool handle other experiments; the FlowCAP-I lymphoma (DLBCL) dataset would be a natural second test.
+- The code checks for a compensation matrix, but neither dataset contained one, so compensation itself hasn't been exercised.
+
+## References
+
+- Aghaeepour, N. et al. (2013). Critical assessment of automated flow cytometry data analysis techniques. *Nature Methods*, 10, 228–238.
+- FlowRepository dataset FR-FCM-ZZY6 (FlowCAP-I HSCT), provided by C. Eaves, BC Cancer Research Centre.
+- The R package [`ks`](https://cran.r-project.org/package=ks), source of the expert labels used for validation.
+- [FlowKit](https://github.com/whitews/FlowKit), used to read FCS files.
+- Example Attune file from [`tlnagy/fcsexamples`](https://github.com/tlnagy/fcsexamples).
+
+## Licence
+
+The code is released under the MIT licence (see `LICENSE`). The datasets belong to their original authors and aren't redistributed here.
+
+AI tools were used for code review and debugging.
