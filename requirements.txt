@@ -1,4 +1,4 @@
-   flowkit
+   flowkit==1.2.3
    numpy
    pandas
    matplotlib
