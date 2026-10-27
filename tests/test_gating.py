@@ -2,14 +2,21 @@ import pytest
 from flowtool.gating import pct, apply_gating, assign_labels, CUTOFFS
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
+DATA = Path("data/FlowCAP-I HSCT")
+needs_data = pytest.mark.skipif(not DATA.exists(), reason="dataset not downloaded")
+
+
+@needs_data
 def test_pct_empty_parent_is_nan():
     assert np.isnan(pct([],[]))
-
+@needs_data
 def test_pct_equals_right_percentage():
     """Arguments places here as [2,2],[4,4,4,4] as function takes the length 
     to calculate the percentage"""
     assert pct([2,2],[4,4,4,4]) == 50
+
 
 @pytest.fixture
 def temp_df():
@@ -21,7 +28,7 @@ def temp_df():
         "FL4-H": [500, 800, 800, 100, 100, 300]
     })
 
-
+@needs_data
 def test_apply_gating_result(temp_df):
     test_summary = apply_gating(temp_df, **CUTOFFS)
     
@@ -35,6 +42,7 @@ def test_apply_gating_result(temp_df):
     assert test_summary['mac1_pos_donor'] == 1
     assert test_summary['mac1_neg_donor'] == 1
 
+@needs_data
 def test_values_at_cutoff_go_to_correct_side(temp_df):
     #Changing the values of cells of dataframe based on the cut offs provided
     temp_df.loc[5, "FL1-H"] = CUTOFFS["cd45_1_cutoff"]
@@ -50,7 +58,7 @@ def test_values_at_cutoff_go_to_correct_side(temp_df):
     assert test_summary_2["donor"] == 3
     assert test_summary_2["mac1_pos_donor"] == 2
 
-
+@needs_data
 def test_apply_gating_assign_labels_agree(temp_df):
     test_summary = apply_gating(temp_df, **CUTOFFS)
     labelled = assign_labels(temp_df, **CUTOFFS)
