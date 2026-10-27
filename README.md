@@ -1,4 +1,60 @@
-Work in progress: tests and a single-command pipeline are being added
+# Automated Flow Cytometry Gating, Validated Against Expert Manual Gating
+
+A Python pipeline that reads raw FCS files, gates cell populations with fixed, documented thresholds, processes a whole folder of samples in one command, and checks the results against expert manual gating.
+
+Applied to the FlowCAP-I haematopoietic stem cell transplant (HSCT) dataset (mouse bone marrow, 30 files), it reproduces expert manual gating with **F-measures of 0.957–0.996 across 14 cell populations (median 0.985)**. Once the gates are set, gating all 30 files takes under a second, compared with [your honest estimate] to gate them by hand.
+
+## Quick start
+
+```bash
+git clone https://github.com/ankushgoyalengineer/flow-cytometry-gating.git
+cd flow-cytometry-gating
+pip install -r requirements.txt
+```
+
+Download the data as described in [Data](#data), then run:
+
+```bash
+python run_pipeline.py --folder "data/FlowCAP-I HSCT" --out results --labels data/hsct_ks_labels.csv
+```
+
+This gates every file, marks the likely control samples, saves `results/hsct_gating_summary.csv`, and, if expert labels are provided, saves `results/hsct_validation_scores.csv` and prints the agreement scores.
+
+Run the tests with:
+
+```bash
+python -m pytest -v
+```
+
+Tests that need the dataset are skipped automatically if it hasn't been downloaded.
+
+Developed with Python 3.14.7 and FlowKit 1.3.2.
+
+## Project structure
+
+```
+flowtool/
+    fcs_io.py        reading FCS files, metadata, compensation check, transformation
+    plotting.py      scatter, density and histogram plots
+    gating.py        cut-offs, gating, event labelling, batch processing
+    validation.py    scoring against expert labels
+run_pipeline.py      runs the whole analysis in one command
+notebook.ipynb       the analysis step by step, as described below
+tests/               tests for gating and validation
+results/             output tables
+images/              figures used in this README
+```
+
+## Data
+
+The data isn't included in this repository.
+
+- **FCS files:** download the FlowCAP-I HSCT dataset from FlowRepository (FR-FCM-ZZY6) and place the 30 FCS files in `data/FlowCAP-I HSCT/`.
+- **Expert labels:** recreate `data/hsct_ks_labels.csv` from the R package `ks`, using the R code in Week 3 below.
+
+## How this project was built
+
+The sections below describe the work in the order it was done, including the problems I ran into and how I resolved them.
 
 ## Week 1: Learning the FCS Format on a Single File
 
